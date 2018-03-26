@@ -8,6 +8,8 @@
 
 #include <opencv2/highgui/highgui.hpp>
 
+#include <chrono>
+
 namespace{
 
 openevo::EVO evo;
@@ -19,7 +21,12 @@ void on_image(
 	cv_bridge::CvImageConstPtr colorbr = cv_bridge::toCvShare(color, "bgr8");
 	cv_bridge::CvImageConstPtr depthbr = cv_bridge::toCvShare(depth);
 	// Test code
+	auto start = std::chrono::high_resolution_clock::now();
 	evo.updateImageDepth(colorbr->image, depthbr->image);
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> time = end - start;
+	ROS_INFO("Runtime: %.3f ms\n", time.count() * 1000);
+
 	char key = cv::waitKey(1);
 	if(key == 27 || key == 'q') {
 		ros::shutdown();
