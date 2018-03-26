@@ -1,0 +1,3 @@
+[submodule "src/openevo"]
+	path = src/openevo
+	url = https://github.com/tomvand/open-evo.git
