@@ -1,4 +1,4 @@
-#include "evo.hpp"
+#include "openevo/evo.hpp"
 
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
@@ -20,7 +20,6 @@ void on_image(
 	cv_bridge::CvImageConstPtr depthbr = cv_bridge::toCvShare(depth);
 	// Test code
 	evo.updateImageDepth(colorbr->image, depthbr->image);
-//	cv::imshow("Left", colorbr->image);
 	char key = cv::waitKey(1);
 	if(key == 27 || key == 'q') {
 		ros::shutdown();
