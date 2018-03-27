@@ -112,9 +112,6 @@ catkin_package(
 ## Build ##
 ###########
 
-## Set c++11
-set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
-
 ## Build openevo core library
 add_subdirectory(src/openevo)
 
@@ -137,6 +134,14 @@ include_directories(
 
 ## Declare a C++ executable
 add_executable(openevo_node src/openevo_node.cpp)
+
+# Set as c++11
+target_compile_options(openevo_node PRIVATE -std=c++11)
+
+# Add DEBUG macro if req'd
+if(CMAKE_BUILD_TYPE MATCHES Debug)
+  target_compile_definitions(openevo_node PRIVATE -DDEBUG)
+endif()
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
