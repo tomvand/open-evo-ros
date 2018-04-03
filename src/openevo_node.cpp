@@ -25,7 +25,7 @@ void on_image(
 	// Update camera information
 	model.fromCameraInfo(caminfo);
 	// Convert images to openCV
-	cv_bridge::CvImageConstPtr colorbr = cv_bridge::toCvShare(color, "bgr8");
+	cv_bridge::CvImageConstPtr colorbr = cv_bridge::toCvShare(color, "mono8");
 	cv_bridge::CvImageConstPtr depthbr = cv_bridge::toCvShare(depth);
 	// Test code
 	cv::Mat intr;
