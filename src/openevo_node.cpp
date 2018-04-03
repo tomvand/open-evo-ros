@@ -28,7 +28,10 @@ void on_image(
 	cv_bridge::CvImageConstPtr colorbr = cv_bridge::toCvShare(color, "bgr8");
 	cv_bridge::CvImageConstPtr depthbr = cv_bridge::toCvShare(depth);
 	// Test code
-	evo.updateImageDepth(colorbr->image, depthbr->image, model.fullIntrinsicMatrix());
+	cv::Mat intr;
+	static_cast<cv::Mat>(model.projectionMatrix()).copyTo(intr); // Note: intrinsic matrix is 0 on SLAMDunk...
+	intr = intr(cv::Range(0, 3), cv::Range(0, 3));
+	evo.updateImageDepth(colorbr->image, depthbr->image, intr);
 
 	char key = cv::waitKey(1);
 	if(key == 27 || key == 'q') {
