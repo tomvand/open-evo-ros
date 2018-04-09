@@ -11,6 +11,8 @@ find_package(catkin REQUIRED COMPONENTS
   image_geometry
   roscpp
   std_msgs
+  tf
+  nav_msgs
 )
 
 ## System dependencies are found with CMake's conventions
