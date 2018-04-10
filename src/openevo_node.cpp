@@ -8,6 +8,8 @@
 #include <cv_bridge/cv_bridge.h>
 #include <image_geometry/pinhole_camera_model.h>
 
+#include <sensor_msgs/Imu.h>
+
 #include <tf/transform_broadcaster.h>
 #include <nav_msgs/Odometry.h>
 
@@ -23,6 +25,8 @@ image_geometry::PinholeCameraModel model;
 
 tf::TransformBroadcaster *tf_bcaster;
 ros::Publisher odom_pub;
+
+cv::Mat R_cam_imu;
 
 template<class T>
 void rvec_to_quat(cv::Mat &rvec, T &quat) {
@@ -41,6 +45,20 @@ void vec_to_xyz(cv::Mat &vec, T &xyz) {
 	xyz.x = vec.at<double>(0, 0);
 	xyz.y = vec.at<double>(1, 0);
 	xyz.z = vec.at<double>(2, 0);
+}
+
+template<class T>
+void xyz_to_vec(const T &xyz, cv::Mat &vec) {
+	vec.at<double>(0, 0) = xyz.x;
+	vec.at<double>(1, 0) = xyz.y;
+	vec.at<double>(2, 0) = xyz.z;
+}
+
+void on_imu(const sensor_msgs::Imu &imu) {
+	cv::Mat rates(3, 1, CV_64F);
+	xyz_to_vec(imu.angular_velocity, rates);
+	rates = R_cam_imu * rates;
+	evo.updateIMU(rates, ros::Time::now().toSec());
 }
 
 void on_image(
@@ -95,9 +113,18 @@ int main(int argc, char **argv) {
 	ros::init(argc, argv, "percevite");
 	ros::NodeHandle nh;
 
+	// TODO Load imu to cam transform
+	double R_cam_imu_data[] = {	 0.0, -1.0,  0.0,
+								 0.0,  0.0,  1.0,
+								-1.0,  0.0,  0.0 };
+	R_cam_imu = cv::Mat(3, 3, CV_64F, R_cam_imu_data);
+
 	// Advertise tf and odom
 	odom_pub = nh.advertise<nav_msgs::Odometry>("odom", 50);
 	tf_bcaster = new tf::TransformBroadcaster();
+
+	// Subscribe to IMU
+	ros::Subscriber imu_sub = nh.subscribe("/imu", 100, &on_imu);
 
 	// Subscribe to image topics
 	image_transport::ImageTransport it(nh);
