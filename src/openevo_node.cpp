@@ -66,7 +66,7 @@ void on_imu(const sensor_msgs::Imu &imu) {
 	}
 	rates -= imu_bias;
 	rates = R_cam_imu * rates;
-//	evo.updateIMU(rates, imu.header.stamp.toSec());
+	evo.updateIMU(rates, imu.header.stamp.toSec());
 }
 
 void on_image(
