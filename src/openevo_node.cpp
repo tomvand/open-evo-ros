@@ -27,6 +27,8 @@ tf::TransformBroadcaster *tf_bcaster;
 ros::Publisher odom_pub;
 
 cv::Mat R_cam_imu;
+cv::Mat imu_bias(cv::Mat::zeros(3, 1, CV_64F));
+int imu_bias_samples;
 
 template<class T>
 void rvec_to_quat(cv::Mat &rvec, T &quat) {
@@ -57,8 +59,14 @@ void xyz_to_vec(const T &xyz, cv::Mat &vec) {
 void on_imu(const sensor_msgs::Imu &imu) {
 	cv::Mat rates(3, 1, CV_64F);
 	xyz_to_vec(imu.angular_velocity, rates);
+	if(imu_bias_samples < 100) {
+		imu_bias += rates / 100.0;
+		++imu_bias_samples;
+		return;
+	}
+	rates -= imu_bias;
 	rates = R_cam_imu * rates;
-	evo.updateIMU(rates, ros::Time::now().toSec());
+//	evo.updateIMU(rates, imu.header.stamp.toSec());
 }
 
 void on_image(
