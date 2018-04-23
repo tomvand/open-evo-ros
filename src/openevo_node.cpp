@@ -114,12 +114,54 @@ void on_image(
 	}
 }
 
+void configure_evo(ros::NodeHandle &nh) {
+	int target_keypts;
+	if(nh.getParam("target_keypts", target_keypts)) {
+		evo.setTargetKeypts(target_keypts);
+		ROS_INFO("Target keypoints: %d", target_keypts);
+	}
+
+	int min_keypts;
+	if(nh.getParam("min_keypts", min_keypts)) {
+		evo.setMinKeypts(min_keypts);
+		ROS_INFO("Min keypoints: %d", min_keypts);
+	}
+
+	double keyframe_thres;
+	if(nh.getParam("keyframe_thres", keyframe_thres)) {
+		evo.setKeyframeThres(keyframe_thres);
+		ROS_INFO("Keyframe threshold: %f", keyframe_thres);
+	}
+
+	double near_clip;
+	if(nh.getParam("near_clip", near_clip)) {
+		evo.setNearClip(near_clip);
+		ROS_INFO("Near clip: %f", near_clip);
+	}
+
+	int grid_rows;
+	if(nh.getParam("grid_rows", grid_rows)) {
+		evo.setGridRows(grid_rows);
+		ROS_INFO("Grid rows: %d", grid_rows);
+	}
+
+	int grid_cols;
+	if(nh.getParam("grid_cols", grid_cols)) {
+		evo.setGridCols(grid_cols);
+		ROS_INFO("Grid cols: %d", grid_cols);
+	}
+}
+
 } // namespace
 
 int main(int argc, char **argv) {
 	// Initialize ROS
-	ros::init(argc, argv, "percevite");
+	ros::init(argc, argv, "openevo");
 	ros::NodeHandle nh;
+	ros::NodeHandle nh_private("~");
+
+	// Configure evo
+	configure_evo(nh_private);
 
 	// TODO Load imu to cam transform
 	double R_cam_imu_data[] = {	 0.0, -1.0,  0.0,
