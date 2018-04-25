@@ -86,26 +86,29 @@ void on_image(
 			caminfo->header.stamp.toSec());
 	// Broadcast pose
 	cv::Mat rvec, tvec;
-	evo.getPose(rvec, tvec);
-	geometry_msgs::TransformStamped tf_msg;
-	tf_msg.header.stamp = caminfo->header.stamp;
-	tf_msg.header.frame_id = "odom";
-	tf_msg.child_frame_id = "evo";
-	vec_to_xyz(tvec, tf_msg.transform.translation);
-	rvec_to_quat(rvec, tf_msg.transform.rotation);
-	tf_bcaster->sendTransform(tf_msg); // tf_bcaster should always exist
-	// Broadcast odom
-	nav_msgs::Odometry odom_msg;
-	odom_msg.header.stamp = caminfo->header.stamp;
-	odom_msg.header.frame_id = "odom";
-	odom_msg.child_frame_id = "evo";
-	vec_to_xyz(tvec, odom_msg.pose.pose.position);
-	rvec_to_quat(rvec, odom_msg.pose.pose.orientation);
-	cv::Mat vel, rates;
-	evo.getRates(vel, rates);
-	vec_to_xyz(vel, odom_msg.twist.twist.linear);
-	vec_to_xyz(rates, odom_msg.twist.twist.angular);
-	odom_pub.publish(odom_msg);
+	bool evo_valid;
+	evo_valid = evo.getPose(rvec, tvec);
+	if(evo_valid) { // Only broadcast pose and odom if the estimate is valid
+		geometry_msgs::TransformStamped tf_msg;
+		tf_msg.header.stamp = caminfo->header.stamp;
+		tf_msg.header.frame_id = "odom";
+		tf_msg.child_frame_id = "evo";
+		vec_to_xyz(tvec, tf_msg.transform.translation);
+		rvec_to_quat(rvec, tf_msg.transform.rotation);
+		tf_bcaster->sendTransform(tf_msg); // tf_bcaster should always exist
+		// Broadcast odom
+		nav_msgs::Odometry odom_msg;
+		odom_msg.header.stamp = caminfo->header.stamp;
+		odom_msg.header.frame_id = "odom";
+		odom_msg.child_frame_id = "evo";
+		vec_to_xyz(tvec, odom_msg.pose.pose.position);
+		rvec_to_quat(rvec, odom_msg.pose.pose.orientation);
+		cv::Mat vel, rates;
+		evo.getRates(vel, rates);
+		vec_to_xyz(vel, odom_msg.twist.twist.linear);
+		vec_to_xyz(rates, odom_msg.twist.twist.angular);
+		odom_pub.publish(odom_msg);
+	}
 
 
 	char key = cv::waitKey(1);
