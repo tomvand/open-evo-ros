@@ -167,9 +167,9 @@ int main(int argc, char **argv) {
 	configure_evo(nh_private);
 
 	// TODO Load imu to cam transform
-	double R_cam_imu_data[] = {	 0.0, -1.0,  0.0,
-								 0.0,  0.0,  1.0,
-								-1.0,  0.0,  0.0 };
+	double R_cam_imu_data[] = {	 0.0, 1.0,  0.0,
+								 0.0,  0.0,  -1.0,
+								-1.0,  0.0,  0.0 }; // XXX Fix, incorrect!
 	R_cam_imu = cv::Mat(3, 3, CV_64F, R_cam_imu_data);
 
 	// Advertise tf and odom
@@ -181,9 +181,9 @@ int main(int argc, char **argv) {
 
 	// Subscribe to image topics
 	image_transport::ImageTransport it(nh);
-	image_transport::SubscriberFilter sub_left(it, "/left_rgb_rect/image_rect_color", 3);
-	image_transport::SubscriberFilter sub_depth(it, "/depth_map/image", 3);
-	message_filters::Subscriber<sensor_msgs::CameraInfo> sub_caminfo(nh, "/left_rgb_rect/camera_info", 3);
+	image_transport::SubscriberFilter sub_left(it, "image", 3);
+	image_transport::SubscriberFilter sub_depth(it, "depth_image", 3);
+	message_filters::Subscriber<sensor_msgs::CameraInfo> sub_caminfo(nh, "camera_info", 3);
 	message_filters::TimeSynchronizer
 			<sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::CameraInfo>
 			sync(sub_left, sub_depth, sub_caminfo, 10);
