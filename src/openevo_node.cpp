@@ -142,6 +142,12 @@ void configure_evo(ros::NodeHandle &nh) {
 		ROS_INFO("Near clip: %f", near_clip);
 	}
 
+	double far_clip;
+	if(nh.getParam("far_clip", far_clip)) {
+    evo.setFarClip(far_clip);
+    ROS_INFO("Far clip: %f", far_clip);
+  }
+
 	int grid_rows;
 	if(nh.getParam("grid_rows", grid_rows)) {
 		evo.setGridRows(grid_rows);
