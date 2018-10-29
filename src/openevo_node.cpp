@@ -4,7 +4,8 @@
 #include <image_transport/image_transport.h>
 #include <image_transport/subscriber_filter.h>
 #include <message_filters/subscriber.h>
-#include <message_filters/time_synchronizer.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
 #include <cv_bridge/cv_bridge.h>
 #include <image_geometry/pinhole_camera_model.h>
 
@@ -187,12 +188,14 @@ int main(int argc, char **argv) {
 
 	// Subscribe to image topics
 	image_transport::ImageTransport it(nh);
-	image_transport::SubscriberFilter sub_left(it, "image", 3);
-	image_transport::SubscriberFilter sub_depth(it, "depth_image", 3);
-	message_filters::Subscriber<sensor_msgs::CameraInfo> sub_caminfo(nh, "camera_info", 3);
-	message_filters::TimeSynchronizer
-			<sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::CameraInfo>
-			sync(sub_left, sub_depth, sub_caminfo, 10);
+	image_transport::SubscriberFilter sub_left(it, "image", 1);
+	image_transport::SubscriberFilter sub_depth(it, "depth_image", 1);
+	message_filters::Subscriber<sensor_msgs::CameraInfo> sub_caminfo(nh, "camera_info", 1);
+	typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::CameraInfo> MySyncPolicy;
+//	message_filters::TimeSynchronizer
+//			<sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::CameraInfo>
+//			sync(sub_left, sub_depth, sub_caminfo, 10);
+	message_filters::Synchronizer<MySyncPolicy> sync(MySyncPolicy(10), sub_left, sub_depth, sub_caminfo);
 	sync.registerCallback(&on_image);
 
 	ros::spin();
