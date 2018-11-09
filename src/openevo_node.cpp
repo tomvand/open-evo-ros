@@ -120,18 +120,21 @@ void on_image(
 	}
 	auto time_msg_sent = std::chrono::high_resolution_clock::now();
 
-	// Log profiling
-	time_log << std::chrono::duration_cast<std::chrono::microseconds>(time_on_image - time_start).count()
-	    << std::chrono::duration_cast<std::chrono::microseconds>(time_before_evo - time_start).count()
-	    << std::chrono::duration_cast<std::chrono::microseconds>(time_after_evo - time_start).count()
-	    << std::chrono::duration_cast<std::chrono::microseconds>(time_msg_sent - time_start).count()
-	    << evo_valid << std::endl;
-
 	// !!!! Could this cause delays???
 	char key = cv::waitKey(1);
 	if(key == 27 || key == 'q') {
 		ros::shutdown();
 	}
+
+	auto time_on_image_end = std::chrono::high_resolution_clock::now();
+
+  // Log profiling
+  time_log << std::chrono::duration_cast<std::chrono::microseconds>(time_on_image - time_start).count() << ","
+      << std::chrono::duration_cast<std::chrono::microseconds>(time_before_evo - time_start).count() << ","
+      << std::chrono::duration_cast<std::chrono::microseconds>(time_after_evo - time_start).count() << ","
+      << std::chrono::duration_cast<std::chrono::microseconds>(time_msg_sent - time_start).count() << ","
+      << std::chrono::duration_cast<std::chrono::microseconds>(time_on_image_end - time_start).count() << ","
+      << evo_valid << std::endl;
 }
 
 void configure_evo(ros::NodeHandle &nh) {
@@ -214,7 +217,7 @@ int main(int argc, char **argv) {
 
 	// Open log file for profiling
 	time_log.open("/tmp/openevo_time.csv");
-	time_log << "on_image,before_evo,after_evo,msg_sent,evo_valid," << std::endl;
+	time_log << "on_image,before_evo,after_evo,msg_sent,on_image_end,evo_valid" << std::endl;
 
 	ros::spin();
 
