@@ -213,7 +213,7 @@ int main(int argc, char **argv) {
 	sync.registerCallback(&on_image);
 
 	// Open log file for profiling
-	time_log.open("~/openevo_time.csv");
+	time_log.open("/tmp/openevo_time.csv");
 	time_log << "on_image,before_evo,after_evo,msg_sent,evo_valid," << std::endl;
 
 	ros::spin();
