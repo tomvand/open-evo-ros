@@ -18,6 +18,9 @@
 #include <iostream>
 #include <cmath>
 
+#include <fstream>
+#include <chrono>
+
 namespace{
 
 openevo::EVO evo;
@@ -29,6 +32,9 @@ ros::Publisher odom_pub;
 cv::Mat R_cam_imu;
 cv::Mat imu_bias(cv::Mat::zeros(3, 1, CV_64F));
 int imu_bias_samples;
+
+auto time_start = std::chrono::high_resolution_clock::now();
+std::ofstream time_log;
 
 template<class T>
 void rvec_to_quat(cv::Mat &rvec, T &quat) {
@@ -73,6 +79,7 @@ void on_image(
 		const sensor_msgs::ImageConstPtr &color,
 		const sensor_msgs::ImageConstPtr &depth,
 		const sensor_msgs::CameraInfoPtr &caminfo) {
+  auto time_on_image = std::chrono::high_resolution_clock::now();
 	// Update camera information
 	model.fromCameraInfo(caminfo);
 	// Convert images to openCV
@@ -82,8 +89,10 @@ void on_image(
 	cv::Mat intr;
 	static_cast<cv::Mat>(model.projectionMatrix()).copyTo(intr); // Note: intrinsic matrix is 0 on SLAMDunk...
 	intr = intr(cv::Range(0, 3), cv::Range(0, 3));
+	auto time_before_evo = std::chrono::high_resolution_clock::now();
 	evo.updateImageDepth(colorbr->image, depthbr->image, intr,
 			caminfo->header.stamp.toSec());
+	auto time_after_evo = std::chrono::high_resolution_clock::now();
 	// Broadcast pose
 	cv::Mat rvec, tvec;
 	bool evo_valid;
@@ -109,8 +118,16 @@ void on_image(
 		vec_to_xyz(rates, odom_msg.twist.twist.angular);
 		odom_pub.publish(odom_msg);
 	}
+	auto time_msg_sent = std::chrono::high_resolution_clock::now();
 
+	// Log profiling
+	time_log << std::chrono::duration_cast<std::chrono::microseconds>(time_on_image - time_start).count()
+	    << std::chrono::duration_cast<std::chrono::microseconds>(time_before_evo - time_start).count()
+	    << std::chrono::duration_cast<std::chrono::microseconds>(time_after_evo - time_start).count()
+	    << std::chrono::duration_cast<std::chrono::microseconds>(time_msg_sent - time_start).count()
+	    << evo_valid << std::endl;
 
+	// !!!! Could this cause delays???
 	char key = cv::waitKey(1);
 	if(key == 27 || key == 'q') {
 		ros::shutdown();
@@ -195,7 +212,13 @@ int main(int argc, char **argv) {
 			sync(sub_left, sub_depth, sub_caminfo, 10);
 	sync.registerCallback(&on_image);
 
+	// Open log file for profiling
+	time_log.open("~/openevo_time.csv");
+	time_log << "on_image,before_evo,after_evo,msg_sent,evo_valid," << std::endl;
+
 	ros::spin();
+
+	time_log.close();
 
 	return 0;
 }
